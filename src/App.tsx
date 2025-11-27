@@ -630,7 +630,8 @@ function ProductCard({ onAddToCart, onAuthRequired }: ProductCardProps) {
             <img
               src={images[currentImageIndex]}
               alt="Sweatpants"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
+              loading="eager"
             />
             <button
               onClick={prevImage}
