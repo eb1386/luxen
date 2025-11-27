@@ -506,6 +506,7 @@ interface CheckoutProps {
 
 function Checkout({ onClose }: CheckoutProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -514,14 +515,19 @@ function Checkout({ onClose }: CheckoutProps) {
 
   const handleShopifyCheckout = async () => {
     setLoading(true);
+    setError(null);
     try {
+      console.log('Fetching product:', PRODUCT_ID);
       const product = await shopifyClient.product.fetch(PRODUCT_ID);
+      console.log('Product:', product);
 
       if (!product || !product.variants || product.variants.length === 0) {
         throw new Error('Product not found');
       }
 
+      console.log('Creating checkout...');
       const checkout = await shopifyClient.checkout.create();
+      console.log('Checkout created:', checkout.id);
 
       let items: CartItem[] | LocalCartItem[] = [];
 
@@ -535,6 +541,8 @@ function Checkout({ onClose }: CheckoutProps) {
         items = getLocalCart();
       }
 
+      console.log('Cart items:', items);
+
       for (const item of items) {
         const lineItemsToAdd = [
           {
@@ -546,12 +554,15 @@ function Checkout({ onClose }: CheckoutProps) {
           }
         ];
 
+        console.log('Adding line items:', lineItemsToAdd);
         await shopifyClient.checkout.addLineItems(checkout.id, lineItemsToAdd);
       }
 
+      console.log('Redirecting to:', checkout.webUrl);
       window.location.href = checkout.webUrl;
     } catch (error) {
       console.error('Shopify checkout error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create checkout');
       setLoading(false);
     }
   };
@@ -570,9 +581,14 @@ function Checkout({ onClose }: CheckoutProps) {
         </div>
 
         <div className="border border-black p-16 text-center space-y-8">
-          <h2 className="text-2xl font-light tracking-wider">REDIRECTING TO CHECKOUT</h2>
+          <h2 className="text-2xl font-light tracking-wider">
+            {error ? 'ERROR' : 'REDIRECTING TO CHECKOUT'}
+          </h2>
           {loading && (
             <div className="text-gray-600 font-light tracking-wider">LOADING...</div>
+          )}
+          {error && (
+            <div className="text-red-600 font-light text-sm">{error}</div>
           )}
         </div>
       </div>
