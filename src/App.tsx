@@ -3,7 +3,7 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { ShoppingBag, User as UserIcon, X, Eye, EyeOff, Trash2, Ruler, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLocalCart, removeFromLocalCart, updateLocalCartQuantity, addToLocalCart, clearLocalCart, type LocalCartItem } from './lib/cartStorage';
-import { loadStripe } from '@stripe/stripe-js';
+import { shopifyClient, PRODUCT_ID } from './lib/shopify';
 
 interface AuthContextType {
   user: User | null;
@@ -60,8 +60,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  // Stripe Checkout (simple + efficient)
-
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -76,25 +74,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  // Stripe Checkout (simple)
-const stripePromise = loadStripe("pk_test_123"); // <-- replace with your real key
-
-const checkout = async (amount: number) => {
-  const stripe = await stripePromise;
-
-  const res = await fetch("/api/checkout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount }),
-  });
-
-  const session = await res.json();
-
-  await stripe?.redirectToCheckout({ sessionId: session.id });
-};
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, checkout }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
@@ -520,16 +502,57 @@ function Cart({ isOpen, onClose, onCheckout, refreshCart }: CartProps) {
 
 interface CheckoutProps {
   onClose: () => void;
-  cartTotal: number;
 }
 
-interface CheckoutProps {
-  onClose: () => void;
-  cartTotal: number;
-  onPay: () => void;
-}
+function Checkout({ onClose }: CheckoutProps) {
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
-function Checkout({ onClose, cartTotal, onPay }: CheckoutProps) {
+  useEffect(() => {
+    handleShopifyCheckout();
+  }, []);
+
+  const handleShopifyCheckout = async () => {
+    setLoading(true);
+    try {
+      const checkout = await shopifyClient.checkout.create();
+
+      let items: CartItem[] | LocalCartItem[] = [];
+
+      if (user) {
+        const { data } = await supabase
+          .from('cart_items')
+          .select('*')
+          .eq('user_id', user.id);
+        items = data || [];
+      } else {
+        items = getLocalCart();
+      }
+
+      for (const item of items) {
+        const size = item.size;
+        const quantity = item.quantity;
+
+        const lineItemsToAdd = [
+          {
+            variantId: `gid://shopify/ProductVariant/${PRODUCT_ID}`,
+            quantity: quantity,
+            customAttributes: [
+              { key: 'Size', value: size }
+            ]
+          }
+        ];
+
+        await shopifyClient.checkout.addLineItems(checkout.id, lineItemsToAdd);
+      }
+
+      window.location.href = checkout.webUrl;
+    } catch (error) {
+      console.error('Shopify checkout error:', error);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-8 py-32">
       <div className="space-y-8">
@@ -544,18 +567,10 @@ function Checkout({ onClose, cartTotal, onPay }: CheckoutProps) {
         </div>
 
         <div className="border border-black p-16 text-center space-y-8">
-          <h2 className="text-2xl font-light tracking-wider">PAYMENT</h2>
-
-          <div className="text-xl font-light tracking-wider">
-            TOTAL: ${cartTotal.toFixed(2)}
-          </div>
-
-          <button
-            onClick={onPay}
-            className="w-full py-4 border border-black hover:bg-black hover:text-white transition-colors tracking-wider font-light"
-          >
-            PAY NOW
-          </button>
+          <h2 className="text-2xl font-light tracking-wider">REDIRECTING TO CHECKOUT</h2>
+          {loading && (
+            <div className="text-gray-600 font-light tracking-wider">LOADING...</div>
+          )}
         </div>
       </div>
     </div>
@@ -807,14 +822,6 @@ function AppContent() {
     setCartRefresh(prev => prev + 1);
   };
 
-  const handleStripeCheckout = async () => {
-    const { checkout } = useAuth(); // gets the checkout function from context
-    try {
-      await checkout(cartTotal); // uses the current cart total
-    } catch (err) {
-      console.error("Stripe checkout error:", err);
-    }
-  };
   
 
   return (
@@ -860,11 +867,7 @@ function AppContent() {
 
       {currentPage === 'checkout' ? (
         <main className="pt-20 min-h-screen">
-          <Checkout
-  onClose={handleCheckoutClose}
-  cartTotal={cartTotal}
-  onPay={handleStripeCheckout}
-/>
+          <Checkout onClose={handleCheckoutClose} />
         </main>
       ) : currentPage === 'account' ? (
         <main className="pt-20 min-h-screen">
