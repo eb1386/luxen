@@ -562,7 +562,8 @@ function Checkout({ onClose }: CheckoutProps) {
       window.location.href = checkout.webUrl;
     } catch (error) {
       console.error('Shopify checkout error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to create checkout');
+      console.error('Full error details:', JSON.stringify(error, null, 2));
+      setError(error instanceof Error ? error.message : JSON.stringify(error));
       setLoading(false);
     }
   };
