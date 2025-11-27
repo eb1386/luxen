@@ -515,6 +515,12 @@ function Checkout({ onClose }: CheckoutProps) {
   const handleShopifyCheckout = async () => {
     setLoading(true);
     try {
+      const product = await shopifyClient.product.fetch(PRODUCT_ID);
+
+      if (!product || !product.variants || product.variants.length === 0) {
+        throw new Error('Product not found');
+      }
+
       const checkout = await shopifyClient.checkout.create();
 
       let items: CartItem[] | LocalCartItem[] = [];
@@ -530,15 +536,12 @@ function Checkout({ onClose }: CheckoutProps) {
       }
 
       for (const item of items) {
-        const size = item.size;
-        const quantity = item.quantity;
-
         const lineItemsToAdd = [
           {
-            variantId: `gid://shopify/ProductVariant/${PRODUCT_ID}`,
-            quantity: quantity,
+            variantId: product.variants[0].id,
+            quantity: item.quantity,
             customAttributes: [
-              { key: 'Size', value: size }
+              { key: 'Size', value: item.size }
             ]
           }
         ];
