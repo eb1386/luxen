@@ -5,4 +5,4 @@ export const shopifyClient = Client.buildClient({
   storefrontAccessToken: '8e8342a59365af96335fc25cccf0af10',
 });
 
-export const PRODUCT_ID = 'gid://shopify/Product/8814670971049';
+export const PRODUCT_ID = '8814670971049';
