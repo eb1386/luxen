@@ -1057,7 +1057,7 @@ function AppContent() {
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <h2 className="text-5xl font-light tracking-wider">ABOUT</h2>
             <p className="text-gray-600 text-lg leading-loose font-light max-w-2xl mx-auto">
-              A vision of uncompromising quality and timeless design.
+              A vision of uncompromising luxury and timeless design.
             </p>
             <div className="grid md:grid-cols-3 gap-px bg-black">
               <div className="bg-white p-12 space-y-4">
