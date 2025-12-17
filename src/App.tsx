@@ -775,7 +775,6 @@ function ProductCard({ onAddToCart, onAuthRequired }: ProductCardProps) {
                 </div>
                 <div className="space-y-1">
                   <div className="text-3xl font-light">$69.99</div>
-                  <div className="text-xs text-gray-600 tracking-wider">10% BLACK FRIDAY DISCOUNT APPLIED</div>
                 </div>
                 <button
                   onClick={handleAddToCart}
