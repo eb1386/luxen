@@ -8,38 +8,38 @@ export interface LocalCartItem {
 
 let memoryCart: LocalCartItem[] = [];
 
-const isStorageAvailable = (): boolean => {
-  try {
-    const test = '__storage_test__';
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 export const getLocalCart = (): LocalCartItem[] => {
-  if (!isStorageAvailable()) {
-    return memoryCart;
-  }
   try {
     const cart = localStorage.getItem('cart');
     return cart ? JSON.parse(cart) : [];
   } catch {
-    return memoryCart;
+    try {
+      const cart = sessionStorage.getItem('cart');
+      return cart ? JSON.parse(cart) : [];
+    } catch {
+      return memoryCart;
+    }
   }
 };
 
 export const saveLocalCart = (items: LocalCartItem[]) => {
   memoryCart = items;
-  if (!isStorageAvailable()) {
-    return;
-  }
   try {
     localStorage.setItem('cart', JSON.stringify(items));
   } catch {
-    console.warn('Unable to save cart to localStorage');
+    try {
+      sessionStorage.setItem('cart', JSON.stringify(items));
+    } catch {
+      console.warn('Unable to save cart to storage, using memory only');
+    }
+  }
+};
+
+const generateUUID = (): string => {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   }
 };
 
@@ -52,7 +52,7 @@ export const addToLocalCart = (item: Omit<LocalCartItem, 'localId'>) => {
   if (existingItem) {
     existingItem.quantity += item.quantity;
   } else {
-    cart.push({ ...item, localId: crypto.randomUUID() });
+    cart.push({ ...item, localId: generateUUID() });
   }
 
   saveLocalCart(cart);
@@ -74,12 +74,13 @@ export const updateLocalCartQuantity = (localId: string, quantity: number) => {
 
 export const clearLocalCart = () => {
   memoryCart = [];
-  if (!isStorageAvailable()) {
-    return;
-  }
   try {
     localStorage.removeItem('cart');
   } catch {
-    console.warn('Unable to clear cart from localStorage');
+    try {
+      sessionStorage.removeItem('cart');
+    } catch {
+      console.warn('Unable to clear cart from storage');
+    }
   }
 };

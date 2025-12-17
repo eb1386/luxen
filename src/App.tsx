@@ -731,25 +731,34 @@ function ProductCard({ onAddToCart, onAuthRequired }: ProductCardProps) {
   const handleAddToCart = async () => {
     setLoading(true);
 
-    if (user) {
-      await supabase.from('cart_items').insert({
-        user_id: user.id,
-        product_name: 'SWEATPANTS',
-        product_price: 69.99,
-        quantity: 1,
-        size: selectedSize,
-      });
-    } else {
-      addToLocalCart({
-        product_name: 'SWEATPANTS',
-        product_price: 69.99,
-        quantity: 1,
-        size: selectedSize,
-      });
-    }
+    try {
+      if (user) {
+        const { error } = await supabase.from('cart_items').insert({
+          user_id: user.id,
+          product_name: 'SWEATPANTS',
+          product_price: 69.99,
+          quantity: 1,
+          size: selectedSize,
+        });
+        if (error) {
+          console.error('Error adding to cart:', error);
+          throw error;
+        }
+      } else {
+        addToLocalCart({
+          product_name: 'SWEATPANTS',
+          product_price: 69.99,
+          quantity: 1,
+          size: selectedSize,
+        });
+      }
 
-    setLoading(false);
-    onAddToCart();
+      onAddToCart();
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const nextImage = () => {
