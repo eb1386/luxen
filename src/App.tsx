@@ -935,7 +935,7 @@ function AppContent() {
     <div className="min-h-screen bg-white text-black">
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-black">
         <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
-          <div className="text-2xl font-light tracking-widest">LUXEN QUALITY</div>
+          <div className="text-2xl font-light tracking-widest">LUXEN LUXURY</div>
           <div className="flex items-center gap-4">
             {user ? (
               <button
@@ -1079,7 +1079,7 @@ function AppContent() {
         <footer className="py-16 px-8">
           <div className="max-w-7xl mx-auto text-center">
             <div className="text-sm tracking-widest text-gray-400 font-light">
-              © 2025 LUXEN QUALITY
+              © 2025 LUXEN LUXURY
             </div>
           </div>
         </footer>
