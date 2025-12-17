@@ -490,7 +490,7 @@ function Cart({ isOpen, onClose, onCheckout, refreshCart }: CartProps) {
                 onClick={onCheckout}
                 className="w-full py-4 border border-black hover:bg-black hover:text-white transition-colors tracking-wider font-light"
               >
-                CHECKOUT
+                PRE-ORDER CHECKOUT
               </button>
             </div>
           </>
@@ -596,7 +596,7 @@ function Checkout({ onClose }: CheckoutProps) {
     <div className="max-w-4xl mx-auto px-8 py-32">
       <div className="space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-light tracking-wider">CHECKOUT</h1>
+          <h1 className="text-4xl font-light tracking-wider">PRE-ORDER CHECKOUT</h1>
           <button
             onClick={onClose}
             className="p-2 border border-black hover:bg-black hover:text-white transition-colors"
@@ -608,7 +608,7 @@ function Checkout({ onClose }: CheckoutProps) {
         <div className="border border-black p-8 sm:p-16 text-center space-y-8">
           {loading && (
             <>
-              <h2 className="text-2xl font-light tracking-wider">PREPARING CHECKOUT</h2>
+              <h2 className="text-2xl font-light tracking-wider">PREPARING PRE-ORDER CHECKOUT</h2>
               <div className="text-gray-600 font-light tracking-wider">LOADING...</div>
             </>
           )}
@@ -628,9 +628,9 @@ function Checkout({ onClose }: CheckoutProps) {
 
           {!loading && !error && checkoutUrl && isInstagram() && (
             <>
-              <h2 className="text-2xl font-light tracking-wider">COMPLETE YOUR PURCHASE</h2>
+              <h2 className="text-2xl font-light tracking-wider">COMPLETE YOUR PRE-ORDER</h2>
               <p className="text-gray-600 font-light tracking-wide max-w-md mx-auto">
-                Tap the button below to open checkout in your browser
+                Tap the button below to open pre-order checkout in your browser
               </p>
               <div className="space-y-4">
                 <a
@@ -639,7 +639,7 @@ function Checkout({ onClose }: CheckoutProps) {
                   rel="noopener noreferrer"
                   className="block w-full py-4 border border-black bg-black text-white hover:bg-white hover:text-black transition-colors tracking-wider font-light"
                 >
-                  OPEN CHECKOUT
+                  OPEN PRE-ORDER CHECKOUT
                 </a>
                 <button
                   onClick={handleCopyLink}
@@ -653,7 +653,7 @@ function Checkout({ onClose }: CheckoutProps) {
 
           {!loading && !error && checkoutUrl && !isInstagram() && (
             <>
-              <h2 className="text-2xl font-light tracking-wider">REDIRECTING TO CHECKOUT</h2>
+              <h2 className="text-2xl font-light tracking-wider">REDIRECTING TO PRE-ORDER CHECKOUT</h2>
               <div className="text-gray-600 font-light tracking-wider">Please wait...</div>
             </>
           )}
