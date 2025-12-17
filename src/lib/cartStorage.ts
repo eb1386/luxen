@@ -6,13 +6,41 @@ export interface LocalCartItem {
   localId: string;
 }
 
+let memoryCart: LocalCartItem[] = [];
+
+const isStorageAvailable = (): boolean => {
+  try {
+    const test = '__storage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const getLocalCart = (): LocalCartItem[] => {
-  const cart = localStorage.getItem('cart');
-  return cart ? JSON.parse(cart) : [];
+  if (!isStorageAvailable()) {
+    return memoryCart;
+  }
+  try {
+    const cart = localStorage.getItem('cart');
+    return cart ? JSON.parse(cart) : [];
+  } catch {
+    return memoryCart;
+  }
 };
 
 export const saveLocalCart = (items: LocalCartItem[]) => {
-  localStorage.setItem('cart', JSON.stringify(items));
+  memoryCart = items;
+  if (!isStorageAvailable()) {
+    return;
+  }
+  try {
+    localStorage.setItem('cart', JSON.stringify(items));
+  } catch {
+    console.warn('Unable to save cart to localStorage');
+  }
 };
 
 export const addToLocalCart = (item: Omit<LocalCartItem, 'localId'>) => {
@@ -45,5 +73,13 @@ export const updateLocalCartQuantity = (localId: string, quantity: number) => {
 };
 
 export const clearLocalCart = () => {
-  localStorage.removeItem('cart');
+  memoryCart = [];
+  if (!isStorageAvailable()) {
+    return;
+  }
+  try {
+    localStorage.removeItem('cart');
+  } catch {
+    console.warn('Unable to clear cart from localStorage');
+  }
 };

@@ -799,7 +799,20 @@ function AppContent() {
   const [cartRefresh, setCartRefresh] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [cartAnimation, setCartAnimation] = useState(false);
+  const [showStorageWarning, setShowStorageWarning] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    try {
+      const test = '__storage_test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      setShowStorageWarning(false);
+    } catch {
+      setShowStorageWarning(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -875,6 +888,38 @@ function AppContent() {
           </div>
         </div>
       </nav>
+
+      {showStorageWarning && (
+        <div className="fixed top-20 left-0 right-0 z-40 bg-black text-white px-4 py-3">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex-1 text-xs sm:text-sm tracking-wider font-light text-center sm:text-left">
+              For the best experience, open this page in your default browser
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    setCopySuccess(true);
+                    setTimeout(() => setCopySuccess(false), 3000);
+                  } catch {
+                    console.error('Failed to copy link');
+                  }
+                }}
+                className="px-4 py-2 border border-white hover:bg-white hover:text-black transition-colors text-xs tracking-wider font-light whitespace-nowrap"
+              >
+                {copySuccess ? 'COPIED!' : 'COPY LINK'}
+              </button>
+              <button
+                onClick={() => setShowStorageWarning(false)}
+                className="p-1 hover:opacity-70 transition-opacity"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
       <Cart
