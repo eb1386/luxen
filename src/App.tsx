@@ -507,7 +507,14 @@ interface CheckoutProps {
 function Checkout({ onClose }: CheckoutProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
   const { user } = useAuth();
+
+  const isInstagram = () => {
+    const ua = navigator.userAgent || navigator.vendor;
+    return ua.includes('Instagram');
+  };
 
   useEffect(() => {
     handleShopifyCheckout();
@@ -558,13 +565,30 @@ function Checkout({ onClose }: CheckoutProps) {
         await shopifyClient.checkout.addLineItems(checkout.id, lineItemsToAdd);
       }
 
-      console.log('Redirecting to:', checkout.webUrl);
-      window.location.href = checkout.webUrl;
+      console.log('Checkout URL:', checkout.webUrl);
+      setCheckoutUrl(checkout.webUrl);
+      setLoading(false);
+
+      if (!isInstagram()) {
+        window.location.href = checkout.webUrl;
+      }
     } catch (error) {
       console.error('Shopify checkout error:', error);
       console.error('Full error details:', JSON.stringify(error, null, 2));
       setError(error instanceof Error ? error.message : JSON.stringify(error));
       setLoading(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (checkoutUrl) {
+      try {
+        await navigator.clipboard.writeText(checkoutUrl);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 3000);
+      } catch {
+        console.error('Failed to copy link');
+      }
     }
   };
 
@@ -581,15 +605,57 @@ function Checkout({ onClose }: CheckoutProps) {
           </button>
         </div>
 
-        <div className="border border-black p-16 text-center space-y-8">
-          <h2 className="text-2xl font-light tracking-wider">
-            {error ? 'ERROR' : 'REDIRECTING TO CHECKOUT'}
-          </h2>
+        <div className="border border-black p-8 sm:p-16 text-center space-y-8">
           {loading && (
-            <div className="text-gray-600 font-light tracking-wider">LOADING...</div>
+            <>
+              <h2 className="text-2xl font-light tracking-wider">PREPARING CHECKOUT</h2>
+              <div className="text-gray-600 font-light tracking-wider">LOADING...</div>
+            </>
           )}
+
           {error && (
-            <div className="text-red-600 font-light text-sm">{error}</div>
+            <>
+              <h2 className="text-2xl font-light tracking-wider">ERROR</h2>
+              <div className="text-red-600 font-light text-sm">{error}</div>
+              <button
+                onClick={onClose}
+                className="px-8 py-3 border border-black hover:bg-black hover:text-white transition-colors tracking-wider font-light"
+              >
+                BACK TO CART
+              </button>
+            </>
+          )}
+
+          {!loading && !error && checkoutUrl && isInstagram() && (
+            <>
+              <h2 className="text-2xl font-light tracking-wider">COMPLETE YOUR PURCHASE</h2>
+              <p className="text-gray-600 font-light tracking-wide max-w-md mx-auto">
+                Tap the button below to open checkout in your browser
+              </p>
+              <div className="space-y-4">
+                <a
+                  href={checkoutUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-4 border border-black bg-black text-white hover:bg-white hover:text-black transition-colors tracking-wider font-light"
+                >
+                  OPEN CHECKOUT
+                </a>
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full py-4 border border-black hover:bg-black hover:text-white transition-colors tracking-wider font-light"
+                >
+                  {copySuccess ? 'LINK COPIED!' : 'COPY CHECKOUT LINK'}
+                </button>
+              </div>
+            </>
+          )}
+
+          {!loading && !error && checkoutUrl && !isInstagram() && (
+            <>
+              <h2 className="text-2xl font-light tracking-wider">REDIRECTING TO CHECKOUT</h2>
+              <div className="text-gray-600 font-light tracking-wider">Please wait...</div>
+            </>
           )}
         </div>
       </div>
